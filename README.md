@@ -42,59 +42,241 @@ yarn build
 ```
 Базовый код
 
-1. Интерфейс IItem 
-Интерфейс нашего товара со всеми необходимыми данными:
-- id: string
-- image: string
-- category: string
-- title: string
-- description: string
-- price: number
+### ТИПЫ ДАННЫХ
 
-2. Класс ItemPresenter 
-Класс, который непосредственно отображает карточку-товара на странице
-Поля класса:
-- itemTemplate: HTMLTemplateElement
-- item: IItem
+/* Возможные типы данных для категорий товаров */
+export type CategoryType =
+  | 'другое'
+  | 'софт-скил'
+  | 'дополнительное'
+  | 'кнопка'
+  | 'хард-скил';
+ 
+ /* Интерфейс, описывающий корзину */
+export interface IBasket {
+  items: IItem[];
+}
 
-Методы класса:
-- buyItem() 
-- deleteItem() 
-- closeItem()
-- renderItem() 
+/* Интерфейс, описывающий окно контакты */
+export interface IContacts {
+    phone: string;
+    email: string;
+}
 
-Купить товар (положить в корзину), удались товар из корзины, закрыть товар, добавить новый template для товара
+/* Интерфейс, описывающий карточку товара */
+export interface IItem {
+    id: string;
+    image: string;
+    category: CategoryType;
+    title: string;
+    description: string;
+    price: number | null;
+}
 
-3. Класс Cart
-Класс, описывающий корзину товаров
-Полем класса является массив карточек товаров Items: Item[]
+/* Интерфейс, описывающий конечный заказ */
+export interface IOrder {
+    total: number;
+}
 
-К методам класса относятся:
-- delete()
-- checkout()
-- close()
+/* Интерфейс, описывающий окно заказ */
+export interface IPayment {
+    address: string;
+    payment: Payment;
+}
 
-Товар из корзины можно удалить, оформить заказ и закрыть попап с товарами
+/* Тип для состояния кнопок выбора оплаты */
+enum Payment {Online, Receipt};
+### Модели данных
 
-4. Класс Order
-Класс, для введения адрес доставки в попап и выбора формы оплаты
-Поля класса:
+/* Абстрактный класс для модели */
+export abstract class Model<T> {
+    protected data: T
 
-- payment: string (выбор способа оплаты)
-- address: string
+    constructor(data: T) {
+        this.data = data
+    }
+}
+/* Абстрактный класс для вьюшки */
+export abstract class View {
+    protected _element: HTMLElement
 
-Метод, который должен присутствовать в данном классе
--nextPopup() - для переключения на следующий класс заполнения данных
+    constructor(element: HTMLElement) {
+        this._element = element
+    }
 
-5. Класс Contacts 
-Класс для введения данных в попап (почта и номер телефона)
-- email: string,
-- phone: string
+    get element(): HTMLElement {
+        return this._element
+    }
+}
 
-А также метод:
-- pay() для оплаты заказа и вывода попапа "Заказ оформлен"
+### Классы
 
-6. Класс Catalog
-Содержащий в себе массив всех карточек
+/* Класс описывающий модель корзины, с геттером получения товаров, находящихся в корзине, методом deleteItem для удаления товаров, addItem - для добавления, clear - для очистки корзины, когда заказ успешно оформлен*/
+ export class BasketModel extends Model <IBasket> {
+
+  constructor(data: IBasket) {
+    super(data)
+  }
+  
+  get items() {
+    return this.data.items
+  }
+  
+  public deleteItem(itemId: string) {
+    let index = this.data.items.findIndex((item) => item.id === itemId)
+    if (index == -1) {
+      return
+    } else {
+      this.items.splice(index,1);
+    }
+  }
+
+  public addItem(item:IItem) {
+    this.items.unshift(item);
+  }
+
+  public clear () {
+    this.items.splice(0,this.items.length);
+  }
+}
+
+/* Класс описывающий модель формы заполнения контактов покупателя, геттеры и сеттеры для получения телефона и мэйла, а также для их изменения*/
+    export class ContactsModel extends Model <IContacts> {
+
+    constructor(data: IContacts) {
+        super(data)
+    }
+
+    get phone() {
+        return this.data.phone
+    }
+
+    set phone(value: string) {
+        this.data.phone = value;
+    }
+
+    get email() {
+        return this.data.email
+    }
+    
+    set email(value: string) {
+        this.data.email = value;
+    }
+}
+
+/* Класс описывающий модель карточки товара, с геттерами для получения контента в каждом свойстве*/
+    export class ItemModel extends Model<IItem> {
+    
+    constructor(data: IItem) {
+        super(data)
+    }
+    
+    get id():string {
+        return this.data.id
+    } // геттер для получения ID
+    get title():string {
+        return this.data.title
+    } // геттер для получения заголовка
+    get image():string {
+        return this.data.image
+    }// геттер для получения картинки
+    get category():string {
+        return this.data.category
+    }// геттер для получения категории
+    get price():number {
+        return this.data.price
+    } // геттер для получения цены
+    get description():string {
+        return this.data.description
+    }// геттер для получения описания
+}
+
+/* Класс модели завершенного заказа, с геттером и сеттеров итоговой суммы заказа */
+export class OrderModel extends Model <IOrder> {
+
+    constructor(data: IOrder) {
+        super(data)
+    }
+
+    get total() {
+        return this.data.total
+    }
+    set total(value: number) {
+        this.data.total = value
+    }
+}
+
+/* Класс модели формы выбора оплаты заказа и адреса покупателя, геттеры и сеттеры для получения адреса и метода оплаты, а также для их изменения*/
+    export class PaymentModel extends Model <IPayment> {
+
+    constructor(data: IPayment){
+        super(data)
+    }
+
+    get address() {
+        return this.data.address
+    }
+
+    set address(value: string) {
+        this.data.address = value;
+    }
+
+    get payment() {
+        return this.data.payment
+    }
+    
+    set payment(value: Payment) {
+        this.data.payment = value;
+    }
+}
+
+/* Класс вью для отображения корзины*/
+export class BasketView extends View {
+    constructor(element: HTMLElement) {
+        super(element)
+    }
+}
+
+/* Класс вью для отображения контактов покупателя*/
+export class ContactsView extends View {
+    constructor(element: HTMLElement) {
+        super(element)
+    }
+}
+
+/* Класс вью для отображения товаров*/
+export class ItemView extends View {
+    constructor(element: HTMLElement) {
+        super(element)
+    }
+}
+
+/* Класс вью для отображения завершенного попапа с заказом*/
+export class OrderView extends View {
+    constructor(element: HTMLElement) {
+        super(element)
+    }
+}
+
+/* Класс вью для отображения оплаты заказа*/
+export class PaymentView extends View {
+    constructor(element: HTMLElement) {
+        super(element)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <img src="./assets/README.jpeg">
