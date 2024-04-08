@@ -1,9 +1,8 @@
-import { IItem } from "./ItemModel";
+import { IItem } from "../../types";
 import { Model } from "./Model";
+import { IGallery } from "../../types";
 
-export interface IGallery {
-    items: IItem[];
-}
+
 
 export class GalleryModel extends Model<IGallery>{
 

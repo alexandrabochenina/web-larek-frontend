@@ -1,7 +1,10 @@
+import { IEvents } from "../../components/base/events";
+import { Payment } from "../../types";
 import { View } from "./View";
 
 export class PaymentView extends View {
-  
+    
+    private emitter: IEvents;
     private cashBtn: HTMLButtonElement;
     private cardBtn: HTMLButtonElement;
     private selectedBtn: HTMLButtonElement = null;
@@ -10,8 +13,11 @@ export class PaymentView extends View {
 
     private onNextCallback: () => void
 
-    constructor(element: HTMLElement) {
+    constructor(element: HTMLElement, emitter: IEvents) {
         super(element)
+
+        this.emitter = emitter
+
         this.cardBtn = element.querySelector('[name="card"]');
         this.cardBtn.addEventListener('click', () => this.toggleButton(this.cardBtn));
         
@@ -24,9 +30,10 @@ export class PaymentView extends View {
         this.address.addEventListener('input', () => this.updateBtnState());
 
         this.nextBtn = element.querySelector(".order__button");
-        this.nextBtn.addEventListener('click', (evt) => {
-            evt.preventDefault()
-            this.onNextCallback()
+
+        this.nextBtn.addEventListener('click', (event) => {
+            event.preventDefault()
+            this.emitter.emit("payment:submit")
         })
     }
 
@@ -34,12 +41,8 @@ export class PaymentView extends View {
         return this.address.value
     }
 
-    get paymentMethod(): string {
-        return this.selectedBtn == this.cashBtn ? 'online' : 'offline';
-    }
-
-    nextClick(callback: () => void) {
-        this.onNextCallback = callback
+    get paymentMethod(): Payment {
+        return this.selectedBtn == this.cashBtn ?  Payment.Receipt : Payment.Online;
     }
 
     private toggleButton(btn: HTMLButtonElement) {

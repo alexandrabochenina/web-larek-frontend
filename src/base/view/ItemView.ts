@@ -1,8 +1,10 @@
 import { CDN_URL } from "../../utils/constants";
-import { IItem } from "../model/ItemModel";
+import { IItem } from "../../types";
 import { View } from "./View";
+import { IEvents } from "../../components/base/events";
 
 export class ItemView extends View {
+    private emitter: IEvents;
     private img: HTMLImageElement;
     private category: HTMLElement;
     private title: HTMLElement;
@@ -13,14 +15,19 @@ export class ItemView extends View {
 
     private itemId: string
 
-    constructor(element: HTMLElement) {
+    constructor(element: HTMLElement, emitter:IEvents) {
         super(element)
+
+        this.emitter = emitter
+
         this.img = element.querySelector(".card__image");
         this.category = element.querySelector(".card__category");
         this.title = element.querySelector(".card__title");
         this.description = element.querySelector(".card__text");
         this.price = element.querySelector(".card__price")
         this.buyBtn = element.querySelector(".card__button")
+
+        this.buyBtn.addEventListener('click', () => this.emitter.emit<String>("item:buy", this.itemId))
     }
 
     setItem(item: IItem, isInBasket: boolean) {
@@ -33,10 +40,6 @@ export class ItemView extends View {
         this.price.textContent = item.price?.toString() ?? "0";
 
         this.buyBtn.textContent = isInBasket ? "Убрать" : "Добавить";
-    }
-
-    onBtnClick(callback: (id: string) => void) {
-        this.buyBtn.addEventListener('click', () => callback(this.itemId))
     }
 }
 

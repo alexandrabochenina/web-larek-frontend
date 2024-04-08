@@ -1,14 +1,7 @@
-import { IItem } from "./ItemModel";
+import { IItem, Payment } from "../../types";
 import { Model } from "./Model";
-/* Интерфейс, описывающий конечный заказ */
-export interface IOrder {
-    items: string[];
-    payment: string;
-    address: string;
-    email: string;
-    phone: string;
-    total: number;
-}
+import { IOrder} from "../../types";
+
 /* Класс модели завершенного заказа */
 export class OrderModel extends Model<IOrder> {
 
@@ -29,10 +22,10 @@ export class OrderModel extends Model<IOrder> {
         this.data.total = items.reduce((acc, item) => acc + item.price, 0)
     }
 
-    get paymentMethod(): string {
+    get paymentMethod(): Payment {
         return this.data.payment
     }
-    set paymentMethod(paymentMethod: string) {
+    set paymentMethod(paymentMethod: Payment) {
         this.data.payment = paymentMethod
     }
 

@@ -1,7 +1,10 @@
-import { IItem } from "../model/ItemModel";
+import { IEvents } from "../../components/base/events";
+import { IItem } from "../../types";
 import { View } from "./View";
 
 export class BasketView extends View {
+
+    private emitter: IEvents;
 
     private openBtn: HTMLButtonElement
     private counter: HTMLElement
@@ -12,11 +15,11 @@ export class BasketView extends View {
     private price: HTMLElement
     private buyBtn: HTMLButtonElement
 
-    private onDelete: (id: string) => void
 
-    constructor(basket: HTMLElement, basketBtn: HTMLButtonElement, itemTemplate: HTMLTemplateElement) {
+    constructor(basket: HTMLElement, basketBtn: HTMLButtonElement, itemTemplate: HTMLTemplateElement, emitter: IEvents) {
         super(basket)
         
+        this.emitter = emitter;
         this.openBtn = basketBtn
         this.counter = basketBtn.querySelector(".header__basket-counter")
 
@@ -24,18 +27,9 @@ export class BasketView extends View {
         this.itemTemplate = itemTemplate
         this.price = basket.querySelector(".basket__price")
         this.buyBtn = basket.querySelector(".basket__button")
-    }
 
-    onItemDelete(callback: (id: string) => void) {
-        this.onDelete = callback;
-    }
-
-    onBasketOpen(callback: () => void) {
-        this.openBtn.addEventListener('click', callback)
-    }
-
-    onBuy(callback: () => void) {
-        this.buyBtn.addEventListener('click', callback)
+        this.openBtn.addEventListener('click', () => this.emitter.emit("basket:open"))
+        this.buyBtn.addEventListener('click', () => this.emitter.emit("basket:buy"))
     }
 
     onItemsChange(items: IItem[]) {
@@ -57,7 +51,7 @@ export class BasketView extends View {
         let itemIndex = itemElement.querySelector(".basket__item-index");
         let deleteBtn = itemElement.querySelector(".basket__item-delete");
 
-        deleteBtn.addEventListener('click', () => this.onDelete(item.id))
+        deleteBtn.addEventListener('click', () => this.emitter.emit<String>("basket:item:delete",item.id))
 
         itemTitle.textContent = item.title;
         itemPrice.textContent = item.price?.toString() ?? '0';

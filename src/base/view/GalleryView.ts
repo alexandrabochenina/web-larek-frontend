@@ -1,21 +1,17 @@
 import { View } from "./View";
-import { IItem } from "../model/ItemModel";
+import { IItem } from "../../types";
 import { CDN_URL } from "../../utils/constants";
+import { IEvents } from "../../components/base/events";
 
 export class GalleryView extends View {
     
-    private onClick: (id: string) => void;
-
+    private emitter: IEvents;
     private itemTemplate: HTMLTemplateElement;
 
-    constructor(gallery: HTMLElement, itemTemplate: HTMLTemplateElement) {
+    constructor(gallery: HTMLElement, itemTemplate: HTMLTemplateElement, emitter: IEvents) {
         super(gallery);
-        
-        this.itemTemplate = itemTemplate
-    }
-
-    onItemClick(callback: (id: string) => void) {
-        this.onClick = callback;
+        this.emitter = emitter;
+        this.itemTemplate = itemTemplate;
     }
 
     onItemsChange(items: IItem[]) {
@@ -35,7 +31,7 @@ export class GalleryView extends View {
         itemImg.src = `${CDN_URL}/${item.image}`;
         itemPrice.textContent = item.price?.toString() ?? "0";
 
-        itemElement.firstElementChild.addEventListener('click', () => this.onClick(item.id))
+        itemElement.firstElementChild.addEventListener('click', () => this.emitter.emit<String>("gallery:item:click", item.id))
 
         return itemElement;
     }

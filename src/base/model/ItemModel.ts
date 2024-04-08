@@ -1,20 +1,5 @@
 import {Model} from "./Model"
-
-export type CategoryType =
-  | 'другое'
-  | 'софт-скил'
-  | 'дополнительное'
-  | 'кнопка'
-  | 'хард-скил';
-
-export interface IItem {
-    id: string;
-    image: string;
-    category: CategoryType;
-    title: string;
-    description: string;
-    price: number | null;
-}
+import { IItem } from "../../types"
 
 export class ItemModel extends Model<IItem> {
     

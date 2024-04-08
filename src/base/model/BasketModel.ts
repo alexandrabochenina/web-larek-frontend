@@ -1,10 +1,7 @@
-import { IItem } from "./ItemModel";
+import { IItem } from "../../types";
 import { Model } from "./Model";
+import { IBasket } from "../../types";
 
-/* Интерфейс, описывающий корзину */
-export interface IBasket {
-  items: IItem[];
-}
 
 /* Класс описывающий модель корзины, с геттером получения товаров, находящихся в корзине, методом deleteItem для удаления товаров, addItem - для добавления, clear - для очистки корзины, когда заказ успешно оформлен*/
 export class BasketModel extends Model <IBasket> {
