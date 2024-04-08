@@ -12,7 +12,7 @@ import { OrderView } from './base/view/OrderView';
 import { PaymentView } from './base/view/PaymentView';
 import { PopupView } from './base/view/PopupView';
 import './scss/styles.scss';
-import { EventEmitter } from './components/base/events';
+import { EventEmitter } from './components/base/Events';
 
 let basketTemplate = document.querySelector("#basket") as HTMLTemplateElement; //темплейт для разметки модального окна корзины
 let cloneBasket = basketTemplate.content.cloneNode(true) as HTMLElement;

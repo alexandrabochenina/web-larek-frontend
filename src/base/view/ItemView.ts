@@ -1,7 +1,7 @@
 import { CDN_URL } from "../../utils/constants";
 import { IItem } from "../../types";
 import { View } from "./View";
-import { IEvents } from "../../components/base/events";
+import { IEvents } from "../../components/base/Events";
 
 export class ItemView extends View {
     private emitter: IEvents;

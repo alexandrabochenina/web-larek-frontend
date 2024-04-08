@@ -1,4 +1,4 @@
-import { IEvents } from "../../components/base/events";
+import { IEvents } from "../../components/base/Events";
 import { Payment } from "../../types";
 import { View } from "./View";
 
