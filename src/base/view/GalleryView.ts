@@ -1,4 +1,5 @@
 import { View } from './View';
+import { IItem } from '../../types';
 import { CDN_URL } from '../../utils/constants';
 import { IEvents } from '../../components/base/Events';
 import {
