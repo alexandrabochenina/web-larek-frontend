@@ -1,8 +1,7 @@
 export abstract class Model<T> {
-    protected data: T
+	protected data: T;
 
-    constructor(data: T) {
-        this.data = data
-    }
-
+	constructor(data: T) {
+		this.data = data;
+	}
 }

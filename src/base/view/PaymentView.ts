@@ -1,70 +1,92 @@
-import { IEvents } from "../../components/base/Events";
-import { Payment } from "../../types";
-import { View } from "./View";
+import { IEvents } from '../../components/base/Events';
+import { Payment } from '../../types';
+import { ensureAllElements, ensureElement } from '../../utils/utils';
+import { View } from './View';
 
 export class PaymentView extends View {
-    
-    private emitter: IEvents;
-    private cashBtn: HTMLButtonElement;
-    private cardBtn: HTMLButtonElement;
-    private selectedBtn: HTMLButtonElement = null;
-    private address: HTMLInputElement;
-    private nextBtn: HTMLButtonElement;
+	private emitter: IEvents;
+	private cashBtn: HTMLButtonElement;
+	private cardBtn: HTMLButtonElement;
+	private selectedBtn: HTMLButtonElement = null;
+	private address: HTMLInputElement;
+	private nextBtn: HTMLButtonElement;
+	private errSpan: HTMLElement;
+	private inputs: HTMLInputElement[];
 
-    private onNextCallback: () => void
+	constructor(element: HTMLElement, emitter: IEvents) {
+		super(element);
 
-    constructor(element: HTMLElement, emitter: IEvents) {
-        super(element)
+		this.emitter = emitter;
 
-        this.emitter = emitter
+		this.cardBtn = ensureElement<HTMLButtonElement>('[name="card"]', element);
+		this.cardBtn.addEventListener('click', () =>
+			this.toggleButton(this.cardBtn)
+		);
 
-        this.cardBtn = element.querySelector('[name="card"]');
-        this.cardBtn.addEventListener('click', () => this.toggleButton(this.cardBtn));
-        
-        this.cashBtn = element.querySelector('[name="cash"]');
-        this.cashBtn.addEventListener('click', () => this.toggleButton(this.cashBtn));
+		this.cashBtn = ensureElement<HTMLButtonElement>('[name="cash"]', element);
+		this.cashBtn.addEventListener('click', () =>
+			this.toggleButton(this.cashBtn)
+		);
+		this.address = ensureElement<HTMLInputElement>('[name="address"]', element);
 
-        this.toggleButton(this.cardBtn);
+		this.toggleButton(this.cardBtn);
+		this.nextBtn = ensureElement<HTMLButtonElement>('.order__button', element);
+		this.errSpan = ensureElement<HTMLElement>('.form__errors', element);
+		this.inputs = ensureAllElements<HTMLInputElement>('.form__input', element);
 
-        this.address = element.querySelector('[name="address"]');
-        this.address.addEventListener('input', () => this.updateBtnState());
+		this.nextBtn.addEventListener('click', (event) => {
+			event.preventDefault();
+			this.emitter.emit('payment:submit');
+		});
 
-        this.nextBtn = element.querySelector(".order__button");
+		this.inputs.forEach((input) => {
+			input.addEventListener('input', () => this.checkFormValidity());
+		});
 
-        this.nextBtn.addEventListener('click', (event) => {
-            event.preventDefault()
-            this.emitter.emit("payment:submit")
-        })
-    }
+		this.updateBtnState(true);
+	}
 
-    get addressValue(): string {
-        return this.address.value
-    }
+	get addressValue(): string {
+		return this.address.value;
+	}
 
-    get paymentMethod(): Payment {
-        return this.selectedBtn == this.cashBtn ?  Payment.Receipt : Payment.Online;
-    }
+	get paymentMethod(): Payment {
+		return this.selectedBtn == this.cashBtn ? Payment.Receipt : Payment.Online;
+	}
 
-    private toggleButton(btn: HTMLButtonElement) {
-        if (btn === this.selectedBtn) {
-            return
-        }
+	private toggleButton(btn: HTMLButtonElement) {
+		if (btn === this.selectedBtn) {
+			return;
+		}
 
-        btn.classList.toggle('button_alt-active')
-        btn.classList.toggle('button_alt')
+		btn.classList.toggle('button_alt-active');
+		btn.classList.toggle('button_alt');
 
-        if(this.selectedBtn !== null) {
-            this.selectedBtn.classList.toggle('button_alt-active');
-            this.selectedBtn.classList.toggle('button_alt')
-        }
+		if (this.selectedBtn !== null) {
+			this.selectedBtn.classList.toggle('button_alt-active');
+			this.selectedBtn.classList.toggle('button_alt');
+		}
 
-        this.selectedBtn = btn;
-    }
+		this.selectedBtn = btn;
+	}
 
-    private updateBtnState() {
-        this.nextBtn.disabled = this.address.value.length === 0;
-    }
+	private updateBtnState(disabled: boolean) {
+		this.nextBtn.disabled = disabled;
+	}
 
+	private checkFormValidity() {
+		let formValid = true;
+		this.inputs.forEach((input) => {
+			const inputEl = input as HTMLInputElement;
+			if (!inputEl.validity.valid) {
+				this.errSpan.textContent = inputEl.validationMessage;
+				formValid = false;
+			}
+		});
 
+		if (formValid) {
+			this.errSpan.textContent = '';
+		}
+		this.updateBtnState(!formValid);
+	}
 }
-

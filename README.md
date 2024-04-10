@@ -1,6 +1,6 @@
 # Проектная работа "Веб-ларек"
 
-Стек: HTML, SCSS, TS, Webpack
+Стек: HTML, SCSS, TS, Webpack, ООП.
 
 Структура проекта:
 - src/ — исходные файлы проекта
@@ -45,7 +45,7 @@ yarn build
 ### ТИПЫ ДАННЫХ
 
 /* Возможные типы данных для категорий товаров */
-export type CategoryType =
+type CategoryType =
   | 'другое'
   | 'софт-скил'
   | 'дополнительное'
@@ -53,18 +53,18 @@ export type CategoryType =
   | 'хард-скил';
  
  /* Интерфейс, описывающий корзину */
-export interface IBasket {
+interface IBasket {
   items: IItem[];
 }
 
 /* Интерфейс, описывающий окно контакты */
-export interface IContacts {
+interface IContacts {
     phone: string;
     email: string;
 }
 
 /* Интерфейс, описывающий карточку товара */
-export interface IItem {
+interface IItem {
     id: string;
     image: string;
     category: CategoryType;
@@ -74,209 +74,56 @@ export interface IItem {
 }
 
 /* Интерфейс, описывающий конечный заказ */
-export interface IOrder {
+interface IOrder {
     total: number;
 }
 
 /* Интерфейс, описывающий окно заказ */
-export interface IPayment {
+interface IPayment {
     address: string;
     payment: Payment;
 }
 
+/* Интерфейс, описывающий массив карточек на главной странице*/
+interface IGallery {
+    items: IItem[];
+}
+
 /* Тип для состояния кнопок выбора оплаты */
 enum Payment {Online, Receipt};
+
 ### Модели данных
 
-/* Абстрактный класс для модели */
-export abstract class Model<T> {
-    protected data: T
+abstract class Model - Абстрактный класс для модели.
+abstract class View - Абстрактный класс для вьюшки.
+Презентер представлен в файле index.ts
 
-    constructor(data: T) {
-        this.data = data
-    }
-}
-/* Абстрактный класс для вьюшки */
-export abstract class View {
-    protected _element: HTMLElement
-
-    constructor(element: HTMLElement) {
-        this._element = element
-    }
-
-    get element(): HTMLElement {
-        return this._element
-    }
-}
 
 ### Классы
 
-/* Класс описывающий модель корзины, с геттером получения товаров, находящихся в корзине, методом deleteItem для удаления товаров, addItem - для добавления, clear - для очистки корзины, когда заказ успешно оформлен*/
- export class BasketModel extends Model <IBasket> {
+class BasketModel - Класс описывающий модель корзины, с геттером получения товаров, находящихся в корзине, методом deleteItem для удаления товаров, addItem - для добавления, clear - для очистки корзины, когда заказ успешно оформлен
 
-  constructor(data: IBasket) {
-    super(data)
-  }
-  
-  get items() {
-    return this.data.items
-  }
-  
-  public deleteItem(itemId: string) {
-    let index = this.data.items.findIndex((item) => item.id === itemId)
-    if (index == -1) {
-      return
-    } else {
-      this.items.splice(index,1);
-    }
-  }
+class ContactsModel - Класс описывающий модель формы заполнения контактов покупателя, геттеры и сеттеры для получения телефона и мэйла, а также для их изменения
 
-  public addItem(item:IItem) {
-    this.items.unshift(item);
-  }
+class ItemModel - Класс описывающий модель карточки товара, с геттерами для получения контента в каждом свойстве
 
-  public clear () {
-    this.items.splice(0,this.items.length);
-  }
-}
+class OrderModel - Класс модели завершенного заказа, с геттером и сеттеров итоговой суммы заказа, способа оплаты и адреса заказчика 
 
-/* Класс описывающий модель формы заполнения контактов покупателя, геттеры и сеттеры для получения телефона и мэйла, а также для их изменения*/
-    export class ContactsModel extends Model <IContacts> {
+class BasketView - Класс вью для отображения корзины. Конструктор класса получается экземпляр корзины, кнопку открытия корзины и эмиттер для отслеживания презентером действий с корзиной. В данном классе есть метод onItemsChange, который следит за изменением общей цены заказа и нажатием кнопок открыть и купить.
 
-    constructor(data: IContacts) {
-        super(data)
-    }
+сlass ContactsView - Класс вью для отображения контактов покупателя. Конструктор класса получает элемент и эмиттер. Также есть методы для получения почты и номера телефона заказчика, метод изменения доступа к кнопке "оплатить" и метод для проверки валидации инпутов.
 
-    get phone() {
-        return this.data.phone
-    }
+class ItemView - Класс вью для отображения товаров. Конструктор класса получает элемент и эмиттер. Есть метод для создания копий карточек товаров внутри корзины.
 
-    set phone(value: string) {
-        this.data.phone = value;
-    }
+class OrderView - Класс вью для отображения завершенного попапа с заказом. Конструктор класса получает элемент и эмиттер. А также метод для изменения цены заказа. 
 
-    get email() {
-        return this.data.email
-    }
-    
-    set email(value: string) {
-        this.data.email = value;
-    }
-}
+class PaymentView - Класс вью для отображения оплаты заказа. Конструктор класса получает элемент и эмиттер. Также есть методы для получения адреса и способа опалты. Метод toggleButton изменяет свое состояние в зависимости от валидации инпутов, updateBtnState и checkFormValidity отвечают за проверку валидации инпутов.
 
-/* Класс описывающий модель карточки товара, с геттерами для получения контента в каждом свойстве*/
-    export class ItemModel extends Model<IItem> {
-    
-    constructor(data: IItem) {
-        super(data)
-    }
-    
-    get id():string {
-        return this.data.id
-    } // геттер для получения ID
-    get title():string {
-        return this.data.title
-    } // геттер для получения заголовка
-    get image():string {
-        return this.data.image
-    }// геттер для получения картинки
-    get category():string {
-        return this.data.category
-    }// геттер для получения категории
-    get price():number {
-        return this.data.price
-    } // геттер для получения цены
-    get description():string {
-        return this.data.description
-    }// геттер для получения описания
-}
+class BasketModel - Класс описывающий модель корзины, с геттером получения товаров, находящихся в корзине, методом deleteItem для удаления товаров, addItem - для добавления, clear - для очистки корзины, когда заказ успешно оформлен
 
-/* Класс модели завершенного заказа, с геттером и сеттеров итоговой суммы заказа */
-export class OrderModel extends Model <IOrder> {
+class GalleryModel - Класс описывающий модель галереи товаров, с геттером и сеттером массива товаров.
 
-    constructor(data: IOrder) {
-        super(data)
-    }
+class ItemModel - Класс описывающий модель одного товара, с геттерама и сеттерами на id товара, заголовок, картинка, категория, цена, описание.
 
-    get total() {
-        return this.data.total
-    }
-    set total(value: number) {
-        this.data.total = value
-    }
-}
-
-/* Класс модели формы выбора оплаты заказа и адреса покупателя, геттеры и сеттеры для получения адреса и метода оплаты, а также для их изменения*/
-    export class PaymentModel extends Model <IPayment> {
-
-    constructor(data: IPayment){
-        super(data)
-    }
-
-    get address() {
-        return this.data.address
-    }
-
-    set address(value: string) {
-        this.data.address = value;
-    }
-
-    get payment() {
-        return this.data.payment
-    }
-    
-    set payment(value: Payment) {
-        this.data.payment = value;
-    }
-}
-
-/* Класс вью для отображения корзины*/
-export class BasketView extends View {
-    constructor(element: HTMLElement) {
-        super(element)
-    }
-}
-
-/* Класс вью для отображения контактов покупателя*/
-export class ContactsView extends View {
-    constructor(element: HTMLElement) {
-        super(element)
-    }
-}
-
-/* Класс вью для отображения товаров*/
-export class ItemView extends View {
-    constructor(element: HTMLElement) {
-        super(element)
-    }
-}
-
-/* Класс вью для отображения завершенного попапа с заказом*/
-export class OrderView extends View {
-    constructor(element: HTMLElement) {
-        super(element)
-    }
-}
-
-/* Класс вью для отображения оплаты заказа*/
-export class PaymentView extends View {
-    constructor(element: HTMLElement) {
-        super(element)
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class OrderModel - Класс описывающий модель заказа товаров (корзина), с геттерами и сеттерами на все данных покупателя (способ оплаты, адрес, телефон, почта).
 <img src="./assets/README.jpeg">

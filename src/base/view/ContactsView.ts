@@ -1,42 +1,61 @@
-import { IEvents } from "../../components/base/Events";
-import { View } from "./View";
+import { IEvents } from '../../components/base/Events';
+import { ensureAllElements, ensureElement } from '../../utils/utils';
+import { View } from './View';
 
 export class ContactsView extends View {
-    private emitter: IEvents;
-    private email: HTMLInputElement;
-    private phone: HTMLInputElement;
-    private payBtn: HTMLButtonElement;
+	private emitter: IEvents;
+	private email: HTMLInputElement;
+	private phone: HTMLInputElement;
+	private payBtn: HTMLButtonElement;
+	private errSpan: HTMLElement;
+	private inputs: HTMLInputElement[];
 
+	constructor(element: HTMLElement, emitter: IEvents) {
+		super(element);
 
-    constructor(element: HTMLElement, emitter: IEvents) {
-        super(element)
+		this.emitter = emitter;
+		this.email = ensureElement<HTMLInputElement>('[name="email"]', element);
+		this.phone = ensureElement<HTMLInputElement>('[name="phone"]', element);
+		this.payBtn = ensureElement<HTMLButtonElement>('.button', element);
+		this.errSpan = ensureElement<HTMLElement>('.form__errors', element);
+		this.inputs = ensureAllElements<HTMLInputElement>('.form__input', element);
 
-        this.emitter = emitter
+		this.payBtn.addEventListener('click', (event) => {
+			event.preventDefault();
+			this.emitter.emit('contacts:pay');
+		});
+		this.inputs.forEach((input) => {
+			input.addEventListener('input', () => this.checkFormValidity());
+		});
 
-        this.email = element.querySelector('[name="email"]');
-        this.email.addEventListener('input', () => this.updateBtnState());
+		this.updateBtnState(true);
+	}
 
-        this.phone = element.querySelector('[name="phone"]');
-        this.phone.addEventListener('input', () => this.updateBtnState());
+	get emailValue(): string {
+		return this.email.value;
+	}
 
-        this.payBtn = element.querySelector(".button")
+	get phoneValue(): string {
+		return this.phone.value;
+	}
 
-        this.payBtn.addEventListener('click', (event) => {
-            event.preventDefault()
-            this.emitter.emit("contacts:pay")
-        })
+	private updateBtnState(disabled: boolean) {
+		this.payBtn.disabled = disabled;
+	}
 
-    }
+	private checkFormValidity() {
+		let formValid = true;
+		this.inputs.forEach((input) => {
+			const inputEl = input as HTMLInputElement;
+			if (!inputEl.validity.valid) {
+				this.errSpan.textContent = inputEl.validationMessage;
+				formValid = false;
+			}
+		});
 
-    get emailValue(): string {
-        return this.email.value
-    }
-
-    get phoneValue(): string{
-        return this.phone.value
-    }
-
-    updateBtnState() {
-        this.payBtn.disabled = this.email.value.length === 0 || this.phone.value.length === 0;
-    }
+		if (formValid) {
+			this.errSpan.textContent = '';
+		}
+		this.updateBtnState(!formValid);
+	}
 }
